@@ -1,0 +1,1 @@
+# aws-cloudtrail-red-blue-soc
