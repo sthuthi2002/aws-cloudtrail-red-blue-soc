@@ -1,13 +1,20 @@
 pipeline {
     agent any
 
-    environment {
-        PROJECT = "${WORKSPACE}"
-    }
-
     stages {
 
-        stage('Download CloudTrail Logs') {
+        stage('Setup Python') {
+            steps {
+                sh '''
+                cd blue_team
+                python3 -m venv venv
+                ./venv/bin/pip install --upgrade pip
+                ./venv/bin/pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Download Logs') {
             steps {
                 sh '''
                 cd blue_team
@@ -34,7 +41,7 @@ pipeline {
             }
         }
 
-        stage('Run Detection Engine') {
+        stage('Run Detection') {
             steps {
                 sh '''
                 cd blue_team
@@ -48,9 +55,8 @@ pipeline {
         success {
             echo 'Pipeline completed successfully!'
         }
-
         failure {
-            echo 'Pipeline failed.'
+            echo 'Pipeline failed!'
         }
     }
 }
