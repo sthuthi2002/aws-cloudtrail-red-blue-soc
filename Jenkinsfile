@@ -1,14 +1,17 @@
 pipeline {
     agent any
 
+    environment {
+        PROJECT = "${WORKSPACE}"
+    }
+
     stages {
 
-        stage('Blue Team - Download Logs') {
+        stage('Download CloudTrail Logs') {
             steps {
                 sh '''
-                cd ~/cloud-red-blue/blue_team
-                source venv/bin/activate
-                python download_logs.py
+                cd blue_team
+                ./venv/bin/python download_logs.py
                 '''
             }
         }
@@ -16,9 +19,8 @@ pipeline {
         stage('Parse Logs') {
             steps {
                 sh '''
-                cd ~/cloud-red-blue/blue_team
-                source venv/bin/activate
-                python parse_cloudtrail.py
+                cd blue_team
+                ./venv/bin/python parse_cloudtrail.py
                 '''
             }
         }
@@ -26,27 +28,29 @@ pipeline {
         stage('Upload to Elasticsearch') {
             steps {
                 sh '''
-                cd ~/cloud-red-blue/blue_team
-                source venv/bin/activate
-                python upload_elasticsearch.py
+                cd blue_team
+                ./venv/bin/python upload_elasticsearch.py
                 '''
             }
         }
 
-        stage('Detection Engine') {
+        stage('Run Detection Engine') {
             steps {
                 sh '''
-                cd ~/cloud-red-blue/blue_team
-                source venv/bin/activate
-                python detections.py
+                cd blue_team
+                ./venv/bin/python detections.py
                 '''
             }
         }
     }
 
     post {
-        always {
-            echo 'Blue Team pipeline completed.'
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }
